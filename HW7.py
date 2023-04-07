@@ -1,8 +1,8 @@
 
-# Your name:
-# Your student id:
-# Your email:
-# List who you have worked with on this project:
+# Your name: Regan Henderson    
+# Your student id: 33746043
+# Your email: reganeh@umich.edu
+# List who you have worked with on this project: Emma Moore
 
 import unittest
 import sqlite3
@@ -57,15 +57,15 @@ def make_players_table(data, cur, conn):
     cur.execute("SELECT id, position FROM Positions")
     for row in cur.fetchall():
         position_ids[row[1]] = row[0]
-    cur.execute("CREATE TABLE IF NOT EXISTS Players (id INTEGER PRIMARY KEY, name TEXT, position_id INTEGER, birthyear INTEGER, nationality TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Players (id INTEGER PRIMARY KEY, name TEXT, position_id INTEGER, dateOfBirth INTEGER, nationality TEXT)")
     for player in data["squad"]:
         id = player["id"]
         name = player["name"]
-        birthyear = player["dateOfBirth"][:4]
+        dateOfBirth = player["dateOfBirth"][:4]
         nationality = player["nationality"]
         position_id = position_ids[player["position"]]
-        player_dct = {"id": id, "name": name, "position_id": position_id, "dateOfBirth": birthyear, "nationality": nationality} 
-        cur.execute("INSERT OR IGNORE INTO Players (id, name, position_id, birthyear, nationality) VALUES (?, ?, ?, ?, ?)", (player_dct['id'], player_dct['name'], player_dct['position_id'], player_dct['dateOfBirth'], player_dct['nationality']))
+        player_dct = {"id": id, "name": name, "position_id": position_id, "dateOfBirth": dateOfBirth, "nationality": nationality} 
+        cur.execute("INSERT OR IGNORE INTO Players (id, name, position_id, dateOfBirth, nationality) VALUES (?, ?, ?, ?, ?)", (player_dct['id'], player_dct['name'], player_dct['position_id'], player_dct['dateOfBirth'], player_dct['nationality']))
     conn.commit()
 
 ## [TASK 2]: 10 points
@@ -102,7 +102,7 @@ def nationality_search(countries, cur, conn):
 
 def birthyear_nationality_search(age, country, cur, conn):
     birth_year = 2023 - age
-    cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear < ?", (country, str(birth_year)))
+    cur.execute("SELECT name, nationality, dateOfBirth FROM Players WHERE nationality=? AND dateOfBirth < ?", (country, str(birth_year)))
     results = cur.fetchall()
     return results
 
@@ -125,7 +125,7 @@ def birthyear_nationality_search(age, country, cur, conn):
 
 def position_birth_search(position, age, cur, conn):
     birth_year = 2023 - age
-    cur.execute("SELECT Players.name, Positions.position, Players.birthyear FROM Players JOIN Positions ON Players.position_id=Positions.id WHERE Positions.position=? AND Players.birthyear > ?", (position, str(birth_year)))
+    cur.execute("SELECT Players.name, Positions.position, Players.dateOfBirth FROM Players JOIN Positions ON Players.position_id=Positions.id WHERE Positions.position=? AND Players.dateOfBirth > ?", (position, str(birth_year)))
     results = cur.fetchall()
     return results
 
