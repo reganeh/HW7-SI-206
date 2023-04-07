@@ -53,7 +53,20 @@ def make_positions_table(data, cur, conn):
 #     created for you -- see make_positions_table above for details.
 
 def make_players_table(data, cur, conn):
-    pass
+    position_ids = {}
+    cur.execute("SELECT id, position FROM Positions")
+    for row in cur.fetchall():
+        position_ids[row[1]] = row[0]
+    cur.execute("CREATE TABLE IF NOT EXISTS Players (id INTEGER PRIMARY KEY, name TEXT, position_id INTEGER, birthyear INTEGER, nationality TEXT)")
+    for player in data["squad"]:
+        id = player["id"]
+        name = player["name"]
+        birthyear = player["dateOfBirth"][:4]
+        nationality = player["nationality"]
+        position_id = position_ids[player["position"]]
+        player_dct = {"id": id, "name": name, "position_id": position_id, "dateOfBirth": birthyear, "nationality": nationality} 
+        cur.execute("INSERT OR IGNORE INTO Players (id, name, position_id, birthyear, nationality) VALUES (?, ?, ?, ?, ?)", (player_dct['id'], player_dct['name'], player_dct['position_id'], player_dct['dateOfBirth'], player_dct['nationality']))
+    conn.commit()
 
 ## [TASK 2]: 10 points
 # Finish the function nationality_search
@@ -66,7 +79,10 @@ def make_players_table(data, cur, conn):
         # the player's name, their position_id, and their nationality.
 
 def nationality_search(countries, cur, conn):
-    pass
+    cur.execute("SELECT name, position_id, nationality FROM Players WHERE nationality IN ({seq})".format(seq=','.join(['?']*len(countries))), countries)
+    results = cur.fetchall()
+    #print("results:", results)
+    return results
 
 ## [TASK 3]: 10 points
 # finish the function birthyear_nationality_search
@@ -85,7 +101,10 @@ def nationality_search(countries, cur, conn):
 
 
 def birthyear_nationality_search(age, country, cur, conn):
-    pass
+    birth_year = 2023 - age
+    cur.execute("SELECT name, nationality, birthyear FROM Players WHERE nationality=? AND birthyear < ?", (country, str(birth_year)))
+    results = cur.fetchall()
+    return results
 
 ## [TASK 4]: 15 points
 # finish the function position_birth_search
@@ -105,7 +124,10 @@ def birthyear_nationality_search(age, country, cur, conn):
     # HINT: You'll have to use JOIN for this task.
 
 def position_birth_search(position, age, cur, conn):
-       pass
+    birth_year = 2023 - age
+    cur.execute("SELECT Players.name, Positions.position, Players.birthyear FROM Players JOIN Positions ON Players.position_id=Positions.id WHERE Positions.position=? AND Players.birthyear > ?", (position, str(birth_year)))
+    results = cur.fetchall()
+    return results
 
 
 # [EXTRA CREDIT]
@@ -205,21 +227,21 @@ class TestAllMethods(unittest.TestCase):
         self.assertEqual(c, [('Teden Mengi', 'Defence', 2002)])
     
     # test extra credit
-    def test_make_winners_table(self):
-        self.cur2.execute('SELECT * from Winners')
-        winners_list = self.cur2.fetchall()
+    # def test_make_winners_table(self):
+    #     self.cur2.execute('SELECT * from Winners')
+    #     winners_list = self.cur2.fetchall()
 
-        pass
+    #     pass
 
-    def test_make_seasons_table(self):
-        self.cur2.execute('SELECT * from Seasons')
-        seasons_list = self.cur2.fetchall()
+    # def test_make_seasons_table(self):
+    #     self.cur2.execute('SELECT * from Seasons')
+    #     seasons_list = self.cur2.fetchall()
 
-        pass
+    #     pass
 
-    def test_winners_since_search(self):
+    # def test_winners_since_search(self):
 
-        pass
+    #     pass
 
 
 def main():
